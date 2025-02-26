@@ -1,6 +1,4 @@
-# This workflow will build a .NET project
-
-name: .NET Framework WPF Build
+name: Gaussian3D WPF Build
 
 on:
   push:
@@ -13,16 +11,74 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.1
-      
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.2.0
-      
-    - name: Restore NuGet packages
-      run: nuget restore
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x  # Modern .NET version that supports WPF
+    
+    - name: Create solution file
+      run: |
+        # Create a basic solution file if it doesn't exist
+        if (-not (Test-Path "*.sln")) {
+          New-Item -Name "Gaussian3D.sln" -ItemType File
+          dotnet new sln
+          # Find and add all .csproj files to the solution
+          Get-ChildItem -Recurse -Filter "*.csproj" | ForEach-Object {
+            dotnet sln add $_.FullName
+          }
+        }
+      shell: pwsh
+    
+    - name: Create project files if needed
+      run: |
+        # Check if we have a .csproj file
+        $csprojCount = (Get-ChildItem -Recurse -Filter "*.csproj" | Measure-Object).Count
+        
+        # If no .csproj files found, create a basic WPF project
+        if ($csprojCount -eq 0) {
+          Write-Host "No project files found. Creating a basic WPF project."
+          dotnet new wpf -n Gaussian3D
+          dotnet sln add Gaussian3D/Gaussian3D.csproj
+          
+          # Move our C# code files into the project
+          $codeFiles = Get-ChildItem -Recurse -Filter "*.cs"
+          $xamlFiles = Get-ChildItem -Recurse -Filter "*.xaml"
+          
+          if ($codeFiles.Count -gt 0 -or $xamlFiles.Count -gt 0) {
+            New-Item -Path "Gaussian3D" -Name "OriginalCode" -ItemType Directory -Force
+            
+            foreach ($file in $codeFiles) {
+              Copy-Item $file.FullName -Destination "Gaussian3D/OriginalCode/"
+            }
+            
+            foreach ($file in $xamlFiles) {
+              Copy-Item $file.FullName -Destination "Gaussian3D/OriginalCode/"
+            }
+          }
+        }
+      shell: pwsh
+    
+    - name: Restore dependencies
+      run: dotnet restore
       
     - name: Build
-      run: msbuild /p:Configuration=Release
+      run: dotnet build --configuration Release --no-restore
+      
+    # Only run tests if there's a test project
+    - name: Check for test projects
+      id: check_tests
+      run: |
+        $testProjects = Get-ChildItem -Recurse -Filter "*[Tt]est*.csproj" | Measure-Object
+        if ($testProjects.Count -gt 0) {
+          Write-Output "::set-output name=has_tests::true"
+        } else {
+          Write-Output "::set-output name=has_tests::false"
+        }
+      shell: pwsh
+      
+    - name: Test
+      if: steps.check_tests.outputs.has_tests == 'true'
+      run: dotnet test --configuration Release --no-build
