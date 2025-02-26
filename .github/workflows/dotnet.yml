@@ -1,0 +1,28 @@
+# This workflow will build a .NET project
+
+name: .NET Framework WPF Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.2.0
+      
+    - name: Restore NuGet packages
+      run: nuget restore
+      
+    - name: Build
+      run: msbuild /p:Configuration=Release
