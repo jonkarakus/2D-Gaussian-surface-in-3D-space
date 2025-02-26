@@ -1,0 +1,65 @@
+﻿<Window x:Class="Gaussian3D.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Gaussian3D"
+        mc:Ignorable="d"
+        Title="3D Gaussian Visualization" Height="700" Width="900"
+        Background="#FF2D2D30">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Border for the 3D viewport with a slight drop shadow -->
+        <Border Grid.Row="0" Margin="20" 
+                BorderBrush="#FF555555" BorderThickness="1" 
+                CornerRadius="4" Background="#FF1E1E1E">
+            <Grid x:Name="MainViewportContainer">
+                <!-- 3D viewport will be added here programmatically -->
+            </Grid>
+        </Border>
+
+        <!-- Information panel at the bottom -->
+        <Border Grid.Row="1" Margin="20,0,20,20" 
+                Background="#FF3E3E42" CornerRadius="4"
+                BorderBrush="#FF555555" BorderThickness="1">
+            <StackPanel Margin="15" Orientation="Vertical">
+                <TextBlock Text=" 2D Gaussian surface embedded in 3D space" 
+                           FontWeight="Bold" FontSize="16" Foreground="#FFDCDCDC" Margin="0,0,0,10" />
+
+                <TextBlock TextWrapping="Wrap" Foreground="#FFB4B4B4" Margin="0,0,0,5" Text="The Gaussian function"/>
+
+                <Border Background="#FF333337" CornerRadius="3" Padding="10" Margin="0,0,0,10">
+                    <TextBlock FontFamily="Consolas" Foreground="#FF569CD6" TextAlignment="Center">
+                        <Run Text="f(x, z) = amplitude * exp(-(x² + z²)/(2*sigma²))" />
+                    </TextBlock>
+                </Border>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Foreground="#FFB4B4B4">
+                            <Run FontWeight="SemiBold" Text="Parameters:" />
+                        </TextBlock>
+                        <TextBlock Margin="15,5,0,0" Foreground="#FFB4B4B4">
+                            <Run Text="• Amplitude = 5.0" />
+                        </TextBlock>
+                        <TextBlock Margin="15,5,0,0" Foreground="#FFB4B4B4">
+                            <Run Text="• Sigma = 1.0" />
+                        </TextBlock>
+                        <TextBlock Margin="15,5,0,0" Foreground="#FFB4B4B4">
+                            <Run Text="• Resolution = 150 grid cells" />
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

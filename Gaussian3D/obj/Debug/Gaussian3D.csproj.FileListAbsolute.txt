@@ -1,0 +1,14 @@
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\bin\Debug\Gaussian3D.exe.config
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\bin\Debug\Gaussian3D.exe
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\bin\Debug\Gaussian3D.pdb
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D.csprojResolveAssemblyReference.cache
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\MainWindow.g.cs
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\App.g.cs
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D_MarkupCompile.cache
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D_MarkupCompile.lref
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\MainWindow.baml
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D.g.resources
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D.Properties.Resources.resources
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D.csproj.GenerateResource.Cache
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D.exe
+C:\Users\Monty\Documents\Visual Studio 2015\Projects\BeamCam3D(test)\Gaussian3D\obj\Debug\Gaussian3D.pdb
