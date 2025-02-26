@@ -17,68 +17,109 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x  # Modern .NET version that supports WPF
+        dotnet-version: 6.0.x
     
-    - name: Create solution file
+    - name: Find solution file
+      id: find-solution
       run: |
-        # Create a basic solution file if it doesn't exist
-        if (-not (Test-Path "*.sln")) {
-          New-Item -Name "Gaussian3D.sln" -ItemType File
-          dotnet new sln
+        # Let's be specific about which solution to use
+        # Priority: 1. Gaussian3D.sln, 2. Any .sln with "Gaussian" in the name, 3. First .sln file
+        
+        # Check for solutions in order of preference
+        $slnPath = $null
+        
+        if (Test-Path "Gaussian3D.sln") {
+          $slnPath = "Gaussian3D.sln"
+        }
+        elseif (Test-Path "*Gaussian*.sln") {
+          $slnPath = (Get-ChildItem -Filter "*Gaussian*.sln" | Select-Object -First 1).Name
+        }
+        elseif (Test-Path "*.sln") {
+          $slnPath = (Get-ChildItem -Filter "*.sln" | Select-Object -First 1).Name
+        }
+        
+        if ($slnPath) {
+          Write-Host "Solution found: $slnPath"
+          echo "::set-output name=solution::$slnPath"
+          echo "SOLUTION_PATH=$slnPath" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "No solution file found. Creating a temporary one."
+          dotnet new sln -n Gaussian3D
+          
           # Find and add all .csproj files to the solution
           Get-ChildItem -Recurse -Filter "*.csproj" | ForEach-Object {
-            dotnet sln add $_.FullName
+            dotnet sln Gaussian3D.sln add $_.FullName
           }
+          
+          echo "::set-output name=solution::Gaussian3D.sln"
+          echo "SOLUTION_PATH=Gaussian3D.sln" >> $env:GITHUB_ENV
         }
       shell: pwsh
     
-    - name: Create project files if needed
+    - name: List csproj files
       run: |
-        # Check if we have a .csproj file
+        Write-Host "Listing all .csproj files in repository:"
+        Get-ChildItem -Recurse -Filter "*.csproj" | ForEach-Object {
+          Write-Host $_.FullName
+        }
+      shell: pwsh
+    
+    - name: Create project file if needed
+      run: |
+        # Check if we have at least one .csproj file
         $csprojCount = (Get-ChildItem -Recurse -Filter "*.csproj" | Measure-Object).Count
         
-        # If no .csproj files found, create a basic WPF project
         if ($csprojCount -eq 0) {
           Write-Host "No project files found. Creating a basic WPF project."
-          dotnet new wpf -n Gaussian3D
-          dotnet sln add Gaussian3D/Gaussian3D.csproj
           
-          # Move our C# code files into the project
-          $codeFiles = Get-ChildItem -Recurse -Filter "*.cs"
-          $xamlFiles = Get-ChildItem -Recurse -Filter "*.xaml"
+          # Create WPF project
+          New-Item -Path "Gaussian3D" -ItemType Directory -Force
           
-          if ($codeFiles.Count -gt 0 -or $xamlFiles.Count -gt 0) {
-            New-Item -Path "Gaussian3D" -Name "OriginalCode" -ItemType Directory -Force
-            
-            foreach ($file in $codeFiles) {
-              Copy-Item $file.FullName -Destination "Gaussian3D/OriginalCode/"
-            }
-            
-            foreach ($file in $xamlFiles) {
-              Copy-Item $file.FullName -Destination "Gaussian3D/OriginalCode/"
-            }
+          # Create very basic .csproj file
+          @"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+</Project>
+"@ | Set-Content -Path "Gaussian3D/Gaussian3D.csproj"
+
+          # Add to solution
+          dotnet sln $env:SOLUTION_PATH add Gaussian3D/Gaussian3D.csproj
+          
+          # Copy source files if they exist
+          $codeFiles = Get-ChildItem -Recurse -Filter "*.cs" | Where-Object { $_.FullName -notlike "*\Gaussian3D\*" }
+          $xamlFiles = Get-ChildItem -Recurse -Filter "*.xaml" | Where-Object { $_.FullName -notlike "*\Gaussian3D\*" }
+          
+          foreach ($file in $codeFiles) {
+            $destPath = Join-Path "Gaussian3D" $file.Name
+            Copy-Item $file.FullName -Destination $destPath -Force
+            Write-Host "Copied $($file.Name) to project"
+          }
+          
+          foreach ($file in $xamlFiles) {
+            $destPath = Join-Path "Gaussian3D" $file.Name
+            Copy-Item $file.FullName -Destination $destPath -Force
+            Write-Host "Copied $($file.Name) to project"
           }
         }
       shell: pwsh
     
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Restore dependencies 
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
       
     - name: Build
-      run: dotnet build --configuration Release --no-restore
-      
-    # Only run tests if there's a test project
-    - name: Check for test projects
-      id: check_tests
+      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+    - name: Test
+      if: ${{ success() }}
       run: |
-        $testProjects = Get-ChildItem -Recurse -Filter "*[Tt]est*.csproj" | Measure-Object
+        $testProjects = Get-ChildItem -Recurse -Filter "*[Tt]est*.csproj"
         if ($testProjects.Count -gt 0) {
-          Write-Output "::set-output name=has_tests::true"
+          dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build
         } else {
-          Write-Output "::set-output name=has_tests::false"
+          Write-Host "No test projects found, skipping tests"
         }
       shell: pwsh
-      
-    - name: Test
-      if: steps.check_tests.outputs.has_tests == 'true'
-      run: dotnet test --configuration Release --no-build
