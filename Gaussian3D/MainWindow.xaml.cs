@@ -29,10 +29,9 @@ namespace Gaussian3D
 
         private void InitializeScene()
         {
-            // Create the 3D viewport
             Viewport3D viewport = new Viewport3D();
 
-            // Create the camera with a good viewing angle
+            // Create camera and viewing angle
             camera = new PerspectiveCamera();
             camera.Position = new Point3D(15, 12, 15);
             camera.LookDirection = new Vector3D(-15, -12, -15);
@@ -40,7 +39,7 @@ namespace Gaussian3D
             camera.FieldOfView = 45;
             viewport.Camera = camera;
 
-            // Create model group to contain all 3D objects
+            // Create model group to contain 3D objects
             modelGroup = new Model3DGroup();
 
             AddLighting();
@@ -49,39 +48,39 @@ namespace Gaussian3D
             CreateGaussianSurface();
             AddRotationAnimation();
 
-            // Add the model to the viewport
+            // Add model to the viewport
             ModelVisual3D modelVisual = new ModelVisual3D();
             modelVisual.Content = modelGroup;
             viewport.Children.Add(modelVisual);
 
-            // Add the viewport to the window
+            // Add viewport to the window
             MainViewportContainer.Children.Add(viewport);
         }
 
         private void AddLighting()
         {
-            // Key light (main direction)
+            // Key light
             DirectionalLight keyLight = new DirectionalLight();
             keyLight.Color = Colors.White;
             keyLight.Direction = new Vector3D(-0.5, -0.5, -0.5);
             keyLight.Direction.Normalize();
             modelGroup.Children.Add(keyLight);
 
-            // Fill light (secondary directional light from opposite direction)
+            // Fill light 
             DirectionalLight fillLight = new DirectionalLight();
             fillLight.Color = Color.FromRgb(220, 220, 255); // Slightly blue tint
             fillLight.Direction = new Vector3D(0.5, -0.2, 0.5);
             fillLight.Direction.Normalize();
             modelGroup.Children.Add(fillLight);
 
-            // Rim light (highlights edges)
+            // Rim light - highlights edges
             DirectionalLight rimLight = new DirectionalLight();
             rimLight.Color = Color.FromRgb(255, 255, 220); // Slightly yellow tint
             rimLight.Direction = new Vector3D(0.2, -0.8, -0.2);
             rimLight.Direction.Normalize();
             modelGroup.Children.Add(rimLight);
 
-            // Ambient light for overall illumination
+            // Ambient light 
             AmbientLight ambientLight = new AmbientLight();
             ambientLight.Color = Color.FromRgb(64, 64, 80); // Slightly blue ambient
             modelGroup.Children.Add(ambientLight);
@@ -99,7 +98,7 @@ namespace Gaussian3D
 
         private void AddGridPlane()
         {
-            // Create a grid on the XZ plane (Y=0)
+            // Create grid on the XZ plane (Y=0)
             double gridSize = 10;
             int gridLines = 20;
             double lineThickness = 0.02;
@@ -130,11 +129,11 @@ namespace Gaussian3D
             double length = direction.Length;
             direction.Normalize();
 
-            // Create a cylinder along the specified axis
+            // Create cylinder along the specified axis
             MeshGeometry3D mesh = new MeshGeometry3D();
             int segments = 8;
 
-            // Create an arbitrary perpendicular vector
+            // Create perpendicular vector
             Vector3D perpendicular;
             if (Math.Abs(direction.X) < Math.Abs(direction.Y) && Math.Abs(direction.X) < Math.Abs(direction.Z))
                 perpendicular = Vector3D.CrossProduct(new Vector3D(1, 0, 0), direction);
@@ -147,7 +146,7 @@ namespace Gaussian3D
             Vector3D perpendicular2 = Vector3D.CrossProduct(direction, perpendicular);
             perpendicular2.Normalize();
 
-            // Create the circle of vertices at the start
+            // circle of vertices at the start
             for (int i = 0; i < segments; i++)
             {
                 double angle = 2 * Math.PI * i / segments;
@@ -155,7 +154,7 @@ namespace Gaussian3D
                 mesh.Positions.Add(start + offset);
             }
 
-            // Create the circle of vertices at the end
+            // circle of vertices at the end
             for (int i = 0; i < segments; i++)
             {
                 double angle = 2 * Math.PI * i / segments;
@@ -192,22 +191,22 @@ namespace Gaussian3D
         {
             MeshGeometry3D mesh = new MeshGeometry3D();
 
-            // Create a gradient for the material
+            // Create gradient for material
             List<GeometryModel3D> surfaceModels = new List<GeometryModel3D>();
 
             // Parameters
             double halfSize = 6.0;
             double step = 2 * halfSize / resolution;
 
-            // Create a color map for the Gaussian heights
+            // Create color map for Gaussian heights
             List<Color> colorMap = GenerateColorMap();
 
-            // Create vertices for the mesh
+            // Create vertices for mesh
             Point3D[,] vertices = new Point3D[resolution + 1, resolution + 1];
             double[,] heights = new double[resolution + 1, resolution + 1];
             double maxHeight = 0;
 
-            // First pass: calculate all heights and find the maximum
+            // Calculate all heights and find the maximum
             for (int i = 0; i <= resolution; i++)
             {
                 double x = -halfSize + i * step;
@@ -228,7 +227,7 @@ namespace Gaussian3D
             {
                 for (int j = 0; j < resolution; j++)
                 {
-                    // Get the four corners of each quad
+                    // Get four corners of each quad
                     Point3D p00 = vertices[i, j];
                     Point3D p10 = vertices[i + 1, j];
                     Point3D p01 = vertices[i, j + 1];
@@ -240,10 +239,9 @@ namespace Gaussian3D
 
                     Color quadColor = GetColorForHeight(normalizedHeight, colorMap);
 
-                    // Create a small mesh for this quad
                     MeshGeometry3D quadMesh = new MeshGeometry3D();
 
-                    // Add the four corners
+                    // Add four corners
                     quadMesh.Positions.Add(p00);
                     quadMesh.Positions.Add(p10);
                     quadMesh.Positions.Add(p01);
@@ -281,7 +279,7 @@ namespace Gaussian3D
                 }
             }
 
-            // Add all surface models to the main model group
+            // Add all surface models to main model
             foreach (var model in surfaceModels)
             {
                 modelGroup.Children.Add(model);
@@ -290,7 +288,7 @@ namespace Gaussian3D
 
         private List<Color> GenerateColorMap()
         {
-            // Create a color gradient from blue (low) through cyan, green, yellow to red (high)
+            // Color Gradient
             List<Color> colorMap = new List<Color>();
 
             colorMap.Add(Color.FromRgb(0, 0, 255));     // Blue
@@ -345,10 +343,10 @@ namespace Gaussian3D
 
         private double GaussianFunction(double x, double z)
         {
-            // Calculate the standard Gaussian value
+            // Calculate standard Gaussian value
             double gaussianValue = amplitude * Math.Exp(-(x * x + z * z) / (2 * sigma * sigma));
 
-            // Apply a vertical offset
+            // Apply vertical offset
             double verticalOffset = amplitude * 0.2; 
             return gaussianValue - verticalOffset;
         }
@@ -363,7 +361,7 @@ namespace Gaussian3D
             double height = camera.Position.Y;
 
             timer.Tick += (sender, e) => {
-                // Update the angle
+                // Update angle
                 angle += 0.1; // Degrees per frame
                 if (angle >= 360) angle = 0;
 
@@ -375,12 +373,12 @@ namespace Gaussian3D
                     radius * Math.Sin(radians)
                 );
 
-                // Keep the camera looking at the center
+                // Keep camera at center
                 camera.LookDirection = new Vector3D(-camera.Position.X, -camera.Position.Y, -camera.Position.Z);
                 camera.UpDirection = new Vector3D(0, 1, 0);
             };
 
-            // Start the timer
+            // Start timer
             timer.Start();
         }
     }
